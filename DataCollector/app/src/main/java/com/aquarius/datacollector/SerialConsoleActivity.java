@@ -33,12 +33,14 @@ import android.widget.CompoundButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.aquarius.datacollector.control.Control;
+import com.aquarius.datacollector.control.ControlListener;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.util.HexDump;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 
-
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,7 +51,7 @@ import java.util.concurrent.Executors;
  *
  * @author mike wakerly (opensource@hoho.com)
  */
-public class SerialConsoleActivity extends Activity {
+public class SerialConsoleActivity extends Activity implements ControlListener {
 
     private final String TAG = SerialConsoleActivity.class.getSimpleName();
 
@@ -70,6 +72,8 @@ public class SerialConsoleActivity extends Activity {
     private ScrollView mScrollView;
     private CheckBox chkDTR;
     private CheckBox chkRTS;
+    private Control control;
+
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
@@ -92,6 +96,7 @@ public class SerialConsoleActivity extends Activity {
                 }
             });
         }
+
     };
 
     @Override
@@ -104,13 +109,9 @@ public class SerialConsoleActivity extends Activity {
         chkDTR = (CheckBox) findViewById(R.id.checkBoxDTR);
         chkRTS = (CheckBox) findViewById(R.id.checkBoxRTS);
 
-        /*
-        try {
-            sPort.setDTR(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
+
+        control = new Control(this);
+        control.setListener(this);
 
         chkDTR.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -217,51 +218,52 @@ public class SerialConsoleActivity extends Activity {
         startIoManager();
     }
 
-    private String fullCommand;
-    private Boolean receivingCommand = false;
 
     private void updateReceivedData(byte[] data) {
         final String message = "Read " + data.length + " bytes: \n"
-                + HexDump.dumpHexString(data)
+                + HexDump.dumpHexString(data) + "\n"
                 + new String(data) + "\n\n";
         mDumpTextView.append(message);
         mScrollView.smoothScrollTo(0, mDumpTextView.getBottom());
 
-        // Unit Tests Would Be a Good Idea to Develop This!!
-        // Also needs a timeout since begining of command
-        // Start Parsing
-        String dataString = new String(data);
-        if(receivingCommand){
-            String command = dataString;
-            if(command.contains("<")){
-                command = dataString.substring(dataString.indexOf('<'));
-                fullCommand = fullCommand + command;
-                // Process Command
-                receivingCommand = false;
-                processCommand(fullCommand);
-            } else {
-                // Command not completely received
-                fullCommand = fullCommand + command;
+        try {
+            control.receivedData(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+            // We should probably reset the connction / switch back to control mode here.
+        }
+    }
+
+    @Override
+    public void processCommand(String command){
+        mDumpTextView.append("Processing Command: " + command + "\n\n");
+        mScrollView.smoothScrollTo(0, mDumpTextView.getBottom());
+
+        // If the command is AQ_TRANSFER_READY
+        // then go into file transfer mode mode, writing all the data sent out to a text file
+        if(command.equals("AQ_TRANSFER_READY")){
+            // we are in file transfer mode
+
+            // switch to file transfer mode
+            try {
+                control.setMode(Control.FILE_TRANSFER_MODE);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } else if(dataString.contains(">")){
-            String command = dataString.substring(dataString.indexOf('>'));
-            if(command.contains("<")){
-                command = dataString.substring(dataString.indexOf('<'));
-                // Process Command
-                receivingCommand = false;
-                processCommand(fullCommand);
-            } else {
-                // Command not completely received
-                fullCommand = command;
-                receivingCommand = true;
-            }
+
+            // send ACK
+            mSerialIoManager.writeAsync(Control.ACK.getBytes());
+
 
         }
     }
 
-    private void processCommand(String command){
-        mDumpTextView.append("Processing Command: " + command);
-        mScrollView.smoothScrollTo(0, mDumpTextView.getBottom());
+    @Override
+    public void fileTransfered(File fileTransferStorage) {
+        // put file into the database so we can upload it later
+        // this is where we need to at least now the device_id of this device
+        // is this some unique USB identifier? NO
+        // so this is why we need the RFID chip, but many Androids won't have RFID..
 
     }
 
