@@ -19,7 +19,7 @@
  * Project home page: https://github.com/mik3y/usb-serial-for-android
  */
 
-package com.aquarius.datacollector;
+package com.aquarius.datacollector.activities;
 
 import android.app.Activity;
 import android.content.Context;
@@ -33,6 +33,7 @@ import android.widget.CompoundButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.aquarius.datacollector.R;
 import com.aquarius.datacollector.control.Control;
 import com.aquarius.datacollector.control.ControlListener;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -220,10 +221,12 @@ public class SerialConsoleActivity extends Activity implements ControlListener {
 
 
     private void updateReceivedData(byte[] data) {
+        /*
         final String message = "Read " + data.length + " bytes: \n"
                 + HexDump.dumpHexString(data) + "\n"
                 + new String(data) + "\n\n";
-        mDumpTextView.append(message);
+        mDumpTextView.append(message);*/
+        mDumpTextView.append("READ " + new String(data) + "\n\n");
         mScrollView.smoothScrollTo(0, mDumpTextView.getBottom());
 
         try {
@@ -253,7 +256,7 @@ public class SerialConsoleActivity extends Activity implements ControlListener {
 
             // send ACK
             mSerialIoManager.writeAsync(Control.ACK.getBytes());
-
+            mDumpTextView.append("SEND " + Control.ACK + "\n\n");
 
         }
     }
