@@ -58,11 +58,10 @@ public class Control {
         writer = new FileWriter(fileTransferStorage);
     }
 
-    public void receivedData(byte[] data) throws IOException  {
+    public void receivedData(String dataString) throws IOException  {
 
         if(mode == CONTROL_MODE) {
 
-            String dataString = new String(data);
             if (receivingCommand) {
                 String command = dataString;
                 if (command.contains("<")) {
@@ -94,7 +93,6 @@ public class Control {
 
             }
         } else if (mode == FILE_TRANSFER_MODE){
-            String dataString = new String(data);
 
             // This could get unit tested
             try {

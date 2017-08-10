@@ -18,12 +18,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aquarius.datacollector.R;
+import com.aquarius.datacollector.control.Control;
+import com.aquarius.datacollector.control.ControlListener;
+import com.aquarius.datacollector.database.DataLog;
 import com.aquarius.datacollector.service.UsbService;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.Date;
 import java.util.Set;
 
-public class SerialConsoleActivity extends AppCompatActivity {
+import io.realm.Realm;
+
+public class SerialConsoleActivity extends AppCompatActivity implements ControlListener {
 
     /*
      * Notifications from UsbService will be received here.
@@ -67,6 +75,9 @@ public class SerialConsoleActivity extends AppCompatActivity {
         }
     };
 
+    private Control control;
+    private Realm realm;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,6 +99,13 @@ public class SerialConsoleActivity extends AppCompatActivity {
                 }
             }
         });
+
+
+        control = new Control(this);
+        control.setListener(this);
+
+        Realm.init(this);
+        realm = Realm.getDefaultInstance();
     }
 
     @Override
@@ -103,6 +121,13 @@ public class SerialConsoleActivity extends AppCompatActivity {
         unregisterReceiver(mUsbReceiver);
         unbindService(usbConnection);
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close();
+    }
+
 
     private void startService(Class<?> service, ServiceConnection serviceConnection, Bundle extras) {
         if (!UsbService.SERVICE_CONNECTED) {
@@ -146,6 +171,12 @@ public class SerialConsoleActivity extends AppCompatActivity {
                 case UsbService.MESSAGE_FROM_SERIAL_PORT:
                     String data = (String) msg.obj;
                     mActivity.get().display.append(data);
+                    try {
+                        mActivity.get().control.receivedData(data);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        // We should probably reset the connction / switch back to control mode here.
+                    }
                     break;
                 case UsbService.CTS_CHANGE:
                     Toast.makeText(mActivity.get(), "CTS_CHANGE",Toast.LENGTH_LONG).show();
@@ -156,4 +187,50 @@ public class SerialConsoleActivity extends AppCompatActivity {
             }
         }
     }
+
+
+    @Override
+    public void processCommand(String command){
+        display.append("Processing Command: " + command + "\n\n");
+
+        // If the command is AQ_TRANSFER_READY
+        // then go into file transfer mode mode, writing all the data sent out to a text file
+        if(command.equals("AQ_TRANSFER_READY")){
+            // we are in file transfer mode
+
+            // switch to file transfer mode
+            try {
+                control.setMode(Control.FILE_TRANSFER_MODE);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // send ACK
+            usbService.write(Control.ACK.getBytes());
+            display.append("SEND " + Control.ACK + "\n\n");
+
+        }
+    }
+
+    @Override
+    public void fileTransfered(File fileTransferStorage) {
+        // put file into the database so we can upload it later
+        // this is where we need to at least now the device_id of this device
+        // is this some unique USB identifier? NO
+        // so this is why we need the RFID chip, but many Androids won't have RFID..
+
+        Number lastId = realm.where(DataLog.class).max("id");
+        int nextID = 1;
+        if(lastId != null) {
+            nextID = (realm.where(DataLog.class).max("id").intValue() + 1); // TODO: not great
+        }
+        realm.beginTransaction();
+        DataLog dataLog = realm.createObject(DataLog.class, nextID);
+        dataLog.setUploaded(false);
+        dataLog.setDeviceId(1); // TODO: Hard coded device Id
+        dataLog.setFilePath(fileTransferStorage.getPath());
+        dataLog.setDateRetreived(new Date());
+        realm.commitTransaction();
+    }
+
 }
