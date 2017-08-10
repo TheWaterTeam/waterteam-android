@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
                     transaction.commit();
                     return true;
                 case R.id.navigation_settings:
-                    Intent intent = new Intent(MainActivity.this, DeviceListActivity.class);
+                    Intent intent = new Intent(MainActivity.this, SerialConsoleActivity.class);
                     startActivity(intent);
                     return true;
             }
