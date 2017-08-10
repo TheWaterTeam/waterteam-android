@@ -28,6 +28,8 @@ import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ScrollView;
@@ -36,6 +38,7 @@ import android.widget.TextView;
 import com.aquarius.datacollector.R;
 import com.aquarius.datacollector.control.Control;
 import com.aquarius.datacollector.control.ControlListener;
+import com.aquarius.datacollector.database.DataLog;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.util.HexDump;
 import com.hoho.android.usbserial.util.SerialInputOutputManager;
@@ -43,8 +46,11 @@ import com.hoho.android.usbserial.util.SerialInputOutputManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import io.realm.Realm;
 
 /**
  * Monitors a single {@link UsbSerialPort} instance, showing all data
@@ -74,7 +80,9 @@ public class SerialConsoleActivity extends Activity implements ControlListener {
     private CheckBox chkDTR;
     private CheckBox chkRTS;
     private Control control;
+    private Button button;
 
+    private Realm realm;
 
     private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
 
@@ -109,7 +117,16 @@ public class SerialConsoleActivity extends Activity implements ControlListener {
         mScrollView = (ScrollView) findViewById(R.id.demoScroller);
         chkDTR = (CheckBox) findViewById(R.id.checkBoxDTR);
         chkRTS = (CheckBox) findViewById(R.id.checkBoxRTS);
+        button = (Button) findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
+                mSerialIoManager.writeAsync(Control.ACK.getBytes());
+                mDumpTextView.append("SEND " + Control.ACK + "\n\n");
+
+            }
+        });
 
         control = new Control(this);
         control.setListener(this);
@@ -132,6 +149,9 @@ public class SerialConsoleActivity extends Activity implements ControlListener {
             }
         });
 
+
+        Realm.init(this);
+        realm = Realm.getDefaultInstance();
     }
 
 
@@ -172,7 +192,7 @@ public class SerialConsoleActivity extends Activity implements ControlListener {
 
             try {
                 sPort.open(connection);
-                sPort.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+                sPort.setParameters(9600, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
 
                 showStatus(mDumpTextView, "CD  - Carrier Detect", sPort.getCD());
                 showStatus(mDumpTextView, "CTS - Clear To Send", sPort.getCTS());
@@ -196,6 +216,13 @@ public class SerialConsoleActivity extends Activity implements ControlListener {
             mTitleTextView.setText("Serial device: " + sPort.getClass().getSimpleName());
         }
         onDeviceStateChange();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close();
     }
 
     private void stopIoManager() {
@@ -268,13 +295,24 @@ public class SerialConsoleActivity extends Activity implements ControlListener {
         // is this some unique USB identifier? NO
         // so this is why we need the RFID chip, but many Androids won't have RFID..
 
+        Number lastId = realm.where(DataLog.class).max("id");
+        int nextID = 1;
+        if(lastId != null) {
+            nextID = (realm.where(DataLog.class).max("id").intValue() + 1); // TODO: not great
+        }
+        realm.beginTransaction();
+        DataLog dataLog = realm.createObject(DataLog.class, nextID);
+        dataLog.setUploaded(false);
+        dataLog.setDeviceId(1); // TODO: Hard coded device Id
+        dataLog.setFilePath(fileTransferStorage.getPath());
+        dataLog.setDateRetreived(new Date());
+        realm.commitTransaction();
     }
 
     /**
      * Starts the activity, using the supplied driver instance.
      *
      * @param context
-     * @param driver
      */
     static void show(Context context, UsbSerialPort port) {
         sPort = port;
@@ -282,5 +320,7 @@ public class SerialConsoleActivity extends Activity implements ControlListener {
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);
         context.startActivity(intent);
     }
+
+
 
 }

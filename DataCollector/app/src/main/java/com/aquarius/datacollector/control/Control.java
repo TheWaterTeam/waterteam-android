@@ -58,7 +58,7 @@ public class Control {
         writer = new FileWriter(fileTransferStorage);
     }
 
-    public void receivedData(byte[] data) throws IOException {
+    public void receivedData(byte[] data) throws IOException  {
 
         if(mode == CONTROL_MODE) {
 
@@ -97,14 +97,23 @@ public class Control {
             String dataString = new String(data);
 
             // This could get unit tested
-            writer.append(dataString);
-            if(dataString.contains("<")){
-                // We are done with the file transfer
-                writer.flush();
-                writer.close();
-                setMode(CONTROL_MODE);
-                listener.fileTransfered(fileTransferStorage);
+            try {
+                writer.append(dataString);
 
+                 if(dataString.contains("<")){
+                    // We are done with the file transfer
+                    writer.flush();
+                    writer.close();
+                    setMode(CONTROL_MODE);
+                    listener.fileTransfered(fileTransferStorage);
+                }
+
+            } catch (IOException e) {
+                writer.close();
+                fileTransferStorage.delete();
+                setMode(CONTROL_MODE);
+                e.printStackTrace();
+                throw e;
             }
         }
     }
