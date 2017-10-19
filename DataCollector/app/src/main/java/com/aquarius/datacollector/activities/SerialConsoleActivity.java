@@ -117,7 +117,9 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
             @Override
             public void onClick(View v) {
 
-                String data = ">WT_REQUEST_DOWNLOAD<";
+                int lastDownloadDate = 1112632576;
+                String data = ">WT_REQUEST_DOWNLOAD:" + String.valueOf(lastDownloadDate) + "<";
+                display.append(data + "\n");
                 if (usbService != null) { // if UsbService was correctly binded, Send data
                     usbService.write(data.getBytes());
                 }
