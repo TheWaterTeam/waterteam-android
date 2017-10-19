@@ -6,6 +6,11 @@
 
     <uses-feature android:name="android.hardware.usb.host" />
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -17,6 +22,7 @@
         <activity
             android:name="com.aquarius.datacollector.activities.SerialConsoleActivity"
             android:label="@string/app_name"
+            android:windowSoftInputMode="adjustPan"
             >
 
             <intent-filter>
@@ -43,6 +49,11 @@
 
         <service
             android:name="com.aquarius.datacollector.service.UsbService"
+            android:enabled="true">
+        </service>
+
+        <service
+            android:name="com.aquarius.datacollector.service.UploadService"
             android:enabled="true">
         </service>
     </application>

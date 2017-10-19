@@ -11,6 +11,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -32,6 +34,8 @@ import java.util.Set;
 import io.realm.Realm;
 
 public class SerialConsoleActivity extends AppCompatActivity implements ControlListener {
+
+    private static String TAG = "SerialConsoleActivity";
 
     /*
      * Notifications from UsbService will be received here.
@@ -87,17 +91,38 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
 
         display = (TextView) findViewById(R.id.textView1);
         editText = (EditText) findViewById(R.id.editText1);
+        editText.setOnKeyListener(new View.OnKeyListener() {
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                // If the event is a key-down event on the "enter" button
+                if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                        (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                    send();
+                    return true;
+                }
+                return false;
+            }
+        });
+
         Button sendButton = (Button) findViewById(R.id.buttonSend);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!editText.getText().toString().equals("")) {
-                    String data = editText.getText().toString();
-                    if (usbService != null) { // if UsbService was correctly binded, Send data
-                        usbService.write(data.getBytes());
-                    }
+                    send();
                 }
             }
+        });
+        Button requestDownloadButton = (Button) findViewById(R.id.buttonRequestDownload);
+        requestDownloadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String data = ">WT_REQUEST_DOWNLOAD<";
+                if (usbService != null) { // if UsbService was correctly binded, Send data
+                    usbService.write(data.getBytes());
+                }
+
+           }
         });
 
 
@@ -106,6 +131,15 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
 
         Realm.init(this);
         realm = Realm.getDefaultInstance();
+    }
+
+    public void send(){
+        if (!editText.getText().toString().equals("")) {
+            String data = editText.getText().toString();
+            if (usbService != null) { // if UsbService was correctly binded, Send data
+                usbService.write(data.getBytes());
+            }
+        }
     }
 
     @Override
@@ -172,6 +206,7 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
                     String data = (String) msg.obj;
                     mActivity.get().display.append(data);
                     try {
+                        Log.d(TAG, "Received Data "+ data);
                         mActivity.get().control.receivedData(data);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -191,11 +226,11 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
 
     @Override
     public void processCommand(String command){
-        display.append("Processing Command: " + command + "\n\n");
+        display.append("Processing Command: " + command + " -- \n\n");
 
         // If the command is AQ_TRANSFER_READY
         // then go into file transfer mode mode, writing all the data sent out to a text file
-        if(command.equals("AQ_TRANSFER_READY")){
+        if(command.equals("WT_TRANSFER_READY")){
             // we are in file transfer mode
 
             // switch to file transfer mode

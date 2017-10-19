@@ -15,7 +15,7 @@ public class Control {
     public static final int CONTROL_MODE = 1;
     public static final int FILE_TRANSFER_MODE = 2;
 
-    public static final String ACK = ">AQ_OK<";
+    public static final String ACK = ">WT_OK<";
 
     ControlListener listener = null;
     private String fullCommand;

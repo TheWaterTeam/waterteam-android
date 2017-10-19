@@ -7,6 +7,9 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -14,6 +17,7 @@ import com.aquarius.datacollector.R;
 import com.aquarius.datacollector.database.DataLog;
 import com.aquarius.datacollector.dummy.DummyContent;
 import com.aquarius.datacollector.dummy.DummyContent.DummyItem;
+import com.aquarius.datacollector.service.UploadService;
 
 import io.realm.Realm;
 import io.realm.RealmQuery;
@@ -56,12 +60,26 @@ public class DataFilesFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
 
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
         }
 
         realm = Realm.getDefaultInstance();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        MenuItem upload = menu.add("Upload");
+        upload.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                UploadService.startActionUpload(getContext());
+                return false;
+            }
+        });
     }
 
     @Override
