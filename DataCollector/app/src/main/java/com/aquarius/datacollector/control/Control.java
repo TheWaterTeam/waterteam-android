@@ -96,15 +96,28 @@ public class Control {
 
             // This could get unit tested
             try {
+
+                String controlString = null;
+                Boolean transferComplete = false;
+                if(dataString.contains(">")) {
+                    controlString = dataString;
+                    dataString = dataString.substring(0, dataString.indexOf('>'));
+                    transferComplete = true;
+                }
+
                 writer.append(dataString);
 
-                 if(dataString.contains("<")){
-                    // We are done with the file transfer
+                if(transferComplete){
                     writer.flush();
                     writer.close();
                     setMode(CONTROL_MODE);
                     listener.fileTransfered(fileTransferStorage);
                 }
+
+                if(controlString != null){
+                    receivedData(controlString);
+                }
+
 
             } catch (IOException e) {
                 writer.close();

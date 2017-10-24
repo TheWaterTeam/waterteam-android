@@ -10,7 +10,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -23,12 +25,14 @@ import com.aquarius.datacollector.R;
 import com.aquarius.datacollector.control.Control;
 import com.aquarius.datacollector.control.ControlListener;
 import com.aquarius.datacollector.database.DataLog;
+import com.aquarius.datacollector.database.DataLogger;
 import com.aquarius.datacollector.service.UsbService;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import io.realm.Realm;
@@ -36,6 +40,8 @@ import io.realm.Realm;
 public class SerialConsoleActivity extends AppCompatActivity implements ControlListener {
 
     private static String TAG = "SerialConsoleActivity";
+
+    private String currentUUID;
 
     /*
      * Notifications from UsbService will be received here.
@@ -46,6 +52,15 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
             switch (intent.getAction()) {
                 case UsbService.ACTION_USB_PERMISSION_GRANTED: // USB PERMISSION GRANTED
                     Toast.makeText(context, "USB Ready", Toast.LENGTH_SHORT).show();
+
+                    final Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            sendCommand(">WT_OPEN_CONNECTION<");
+                        }
+                    }, 3000);
+
                     break;
                 case UsbService.ACTION_USB_PERMISSION_NOT_GRANTED: // USB PERMISSION NOT GRANTED
                     Toast.makeText(context, "USB Permission not granted", Toast.LENGTH_SHORT).show();
@@ -59,12 +74,18 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
                 case UsbService.ACTION_USB_NOT_SUPPORTED: // USB NOT SUPPORTED
                     Toast.makeText(context, "USB device not supported", Toast.LENGTH_SHORT).show();
                     break;
+                case UsbService.ACTION_USB_ATTACHED:
+                    //Toast.makeText(context, "USB Device Connected", Toast.LENGTH_SHORT).show();
+                    break;
             }
         }
     };
     private UsbService usbService;
     private TextView display;
     private EditText editText;
+    private TextView dataLoggerIdTextView;
+    private TextView lastDownloadDateTextView;
+
     private MyHandler mHandler;
     private final ServiceConnection usbConnection = new ServiceConnection() {
         @Override
@@ -81,6 +102,7 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
 
     private Control control;
     private Realm realm;
+    private DataLogger connectedDataLogger;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +112,7 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
         mHandler = new MyHandler(this);
 
         display = (TextView) findViewById(R.id.textView1);
+        display.setMovementMethod(new ScrollingMovementMethod());
         editText = (EditText) findViewById(R.id.editText1);
         editText.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -102,6 +125,9 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
                 return false;
             }
         });
+
+        dataLoggerIdTextView = (TextView) findViewById(R.id.dataloggerIdTextView);
+        lastDownloadDateTextView = (TextView) findViewById(R.id.lastDownloadDateTextView);
 
         Button sendButton = (Button) findViewById(R.id.buttonSend);
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -117,12 +143,8 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
             @Override
             public void onClick(View v) {
 
-                int lastDownloadDate = 1112632576;
-                String data = ">WT_REQUEST_DOWNLOAD:" + String.valueOf(lastDownloadDate) + "<";
-                display.append(data + "\n");
-                if (usbService != null) { // if UsbService was correctly binded, Send data
-                    usbService.write(data.getBytes());
-                }
+                String command = ">WT_REQUEST_DOWNLOAD:" + String.valueOf(connectedDataLogger.getLastDownloadDate()) + "<";
+                sendCommand(command);
 
            }
         });
@@ -141,6 +163,14 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
             if (usbService != null) { // if UsbService was correctly binded, Send data
                 usbService.write(data.getBytes());
             }
+        }
+    }
+
+    public void sendCommand(String command){
+        Log.d(TAG, "Send Command");
+        display.append(command + "\n");
+        if (usbService != null) { // if UsbService was correctly binded, Send data
+            usbService.write(command.getBytes());
         }
     }
 
@@ -188,7 +218,27 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
         filter.addAction(UsbService.ACTION_USB_DISCONNECTED);
         filter.addAction(UsbService.ACTION_USB_NOT_SUPPORTED);
         filter.addAction(UsbService.ACTION_USB_PERMISSION_NOT_GRANTED);
+        filter.addAction(UsbService.ACTION_USB_ATTACHED);
         registerReceiver(mUsbReceiver, filter);
+    }
+
+    private void updateConnectedDatalogger(String uuid){
+        currentUUID = uuid;
+        List<DataLogger> list = realm.where(DataLogger.class).findAll();
+        connectedDataLogger = realm.where(DataLogger.class).equalTo("UUID", currentUUID).findFirst();
+        if(connectedDataLogger == null) {
+            realm.beginTransaction();
+            connectedDataLogger = realm.createObject(DataLogger.class);
+            connectedDataLogger.setUUID(uuid);
+            realm.commitTransaction();
+        }
+
+        updateUI();
+    }
+
+    private void updateUI(){
+        dataLoggerIdTextView.setText("Current Datalogger UUID: " + connectedDataLogger.getUUID());
+        lastDownloadDateTextView.setText("Last Download Date: " + connectedDataLogger.getLastDownloadDate());
     }
 
     /*
@@ -232,9 +282,14 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
 
         // If the command is AQ_TRANSFER_READY
         // then go into file transfer mode mode, writing all the data sent out to a text file
-        if(command.equals("WT_TRANSFER_READY")){
-            // we are in file transfer mode
+        if(command.contains("WT_IDENTIFY_DEVICE")) {
+            String deviceUUID = command.substring(command.indexOf(":")+1);
+            display.append("GOT DEVICE UUID " + deviceUUID + "\n\n");
+            updateConnectedDatalogger(deviceUUID);
 
+
+        } else if(command.contains("WT_TRANSFER_READY")){
+            // we are in file transfer mode
             // switch to file transfer mode
             try {
                 control.setMode(Control.FILE_TRANSFER_MODE);
@@ -246,6 +301,19 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
             usbService.write(Control.ACK.getBytes());
             display.append("SEND " + Control.ACK + "\n\n");
 
+        } else if (command.contains("WT_TRANSFER_COMPLETE")){
+            if(command.contains(":")){
+                String lastDownloadFromDatalogger = command.substring(command.indexOf(":")+1);
+                // TODO store this lastDownloadFromDatalogger into the database on this device
+                // which should also be updated from the server on syncs for this project.
+                display.append("GOT LAST DOWNLOAD DATE " + lastDownloadFromDatalogger+ "\n\n");
+
+                realm.beginTransaction();
+                connectedDataLogger.setLastDownloadDate(lastDownloadFromDatalogger);
+                realm.commitTransaction();
+
+                updateUI();
+            }
         }
     }
 
