@@ -10,12 +10,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.provider.ContactsContract;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -37,15 +39,20 @@ import java.util.Set;
 
 import io.realm.Realm;
 
-public class SerialConsoleActivity extends AppCompatActivity implements ControlListener {
+/**
+ * Created by matthewxi on 11/8/17.
+ */
 
-    private static String TAG = "SerialConsoleActivity";
+public class SerialConsoleFragment extends Fragment implements ControlListener {
+
+    private static String TAG = "SerialConsoleFragment";
 
     private String currentUUID;
 
+
     /*
-     * Notifications from UsbService will be received here.
-     */
+ * Notifications from UsbService will be received here.
+ */
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -86,7 +93,7 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
     private TextView dataLoggerIdTextView;
     private TextView lastDownloadDateTextView;
 
-    private MyHandler mHandler;
+    private SerialConsoleFragment.MyHandler mHandler;
     private final ServiceConnection usbConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName arg0, IBinder arg1) {
@@ -104,16 +111,28 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
     private Realm realm;
     private DataLogger connectedDataLogger;
 
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.serial_console);
 
-        mHandler = new MyHandler(this);
+        mHandler = new SerialConsoleFragment.MyHandler(this);
 
-        display = (TextView) findViewById(R.id.textView1);
+        control = new Control(getContext());
+        control.setListener(this);
+
+        Realm.init(getContext());
+        realm = Realm.getDefaultInstance();
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.serial_console, container, false);
+
+        display = (TextView) view.findViewById(R.id.textView1);
         display.setMovementMethod(new ScrollingMovementMethod());
-        editText = (EditText) findViewById(R.id.editText1);
+        editText = (EditText) view.findViewById(R.id.editText1);
         editText.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 // If the event is a key-down event on the "enter" button
@@ -126,10 +145,10 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
             }
         });
 
-        dataLoggerIdTextView = (TextView) findViewById(R.id.dataloggerIdTextView);
-        lastDownloadDateTextView = (TextView) findViewById(R.id.lastDownloadDateTextView);
+        dataLoggerIdTextView = (TextView) view.findViewById(R.id.dataloggerIdTextView);
+        lastDownloadDateTextView = (TextView) view.findViewById(R.id.lastDownloadDateTextView);
 
-        Button sendButton = (Button) findViewById(R.id.buttonSend);
+        Button sendButton = (Button) view.findViewById(R.id.buttonSend);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -138,7 +157,7 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
                 }
             }
         });
-        Button requestDownloadButton = (Button) findViewById(R.id.buttonRequestDownload);
+        Button requestDownloadButton = (Button) view.findViewById(R.id.buttonRequestDownload);
         requestDownloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -146,15 +165,11 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
                 String command = ">WT_REQUEST_DOWNLOAD:" + String.valueOf(connectedDataLogger.getLastDownloadDate()) + "<";
                 sendCommand(command);
 
-           }
+            }
         });
 
 
-        control = new Control(this);
-        control.setListener(this);
-
-        Realm.init(this);
-        realm = Realm.getDefaultInstance();
+        return view;
     }
 
     public void send(){
@@ -184,12 +199,12 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
     @Override
     public void onPause() {
         super.onPause();
-        unregisterReceiver(mUsbReceiver);
-        unbindService(usbConnection);
+        getActivity().unregisterReceiver(mUsbReceiver);
+        getActivity().unbindService(usbConnection);
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
         realm.close();
     }
@@ -197,7 +212,7 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
 
     private void startService(Class<?> service, ServiceConnection serviceConnection, Bundle extras) {
         if (!UsbService.SERVICE_CONNECTED) {
-            Intent startService = new Intent(this, service);
+            Intent startService = new Intent(getActivity(), service);
             if (extras != null && !extras.isEmpty()) {
                 Set<String> keys = extras.keySet();
                 for (String key : keys) {
@@ -205,10 +220,10 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
                     startService.putExtra(key, extra);
                 }
             }
-            startService(startService);
+            getActivity().startService(startService);
         }
-        Intent bindingIntent = new Intent(this, service);
-        bindService(bindingIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+        Intent bindingIntent = new Intent(getActivity(), service);
+        getActivity().bindService(bindingIntent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     private void setFilters() {
@@ -219,7 +234,7 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
         filter.addAction(UsbService.ACTION_USB_NOT_SUPPORTED);
         filter.addAction(UsbService.ACTION_USB_PERMISSION_NOT_GRANTED);
         filter.addAction(UsbService.ACTION_USB_ATTACHED);
-        registerReceiver(mUsbReceiver, filter);
+        getActivity().registerReceiver(mUsbReceiver, filter);
     }
 
     private void updateConnectedDatalogger(String uuid){
@@ -245,10 +260,10 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
      * This handler will be passed to UsbService. Data received from serial port is displayed through this handler
      */
     private static class MyHandler extends Handler {
-        private final WeakReference<SerialConsoleActivity> mActivity;
+        private final WeakReference<SerialConsoleFragment> mFragment;
 
-        public MyHandler(SerialConsoleActivity activity) {
-            mActivity = new WeakReference<>(activity);
+        public MyHandler(SerialConsoleFragment fragment) {
+            mFragment = new WeakReference<>(fragment);
         }
 
         @Override
@@ -256,20 +271,20 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
             switch (msg.what) {
                 case UsbService.MESSAGE_FROM_SERIAL_PORT:
                     String data = (String) msg.obj;
-                    mActivity.get().display.append(data);
+                    mFragment.get().display.append(data);
                     try {
                         Log.d(TAG, "Received Data "+ data);
-                        mActivity.get().control.receivedData(data);
+                        mFragment.get().control.receivedData(data);
                     } catch (IOException e) {
                         e.printStackTrace();
                         // We should probably reset the connction / switch back to control mode here.
                     }
                     break;
                 case UsbService.CTS_CHANGE:
-                    Toast.makeText(mActivity.get(), "CTS_CHANGE",Toast.LENGTH_LONG).show();
+                    Toast.makeText(mFragment.get().getActivity(), "CTS_CHANGE",Toast.LENGTH_LONG).show();
                     break;
                 case UsbService.DSR_CHANGE:
-                    Toast.makeText(mActivity.get(), "DSR_CHANGE",Toast.LENGTH_LONG).show();
+                    Toast.makeText(mFragment.get().getActivity(), "DSR_CHANGE",Toast.LENGTH_LONG).show();
                     break;
             }
         }
@@ -337,5 +352,6 @@ public class SerialConsoleActivity extends AppCompatActivity implements ControlL
         dataLog.setDateRetreived(new Date());
         realm.commitTransaction();
     }
+
 
 }

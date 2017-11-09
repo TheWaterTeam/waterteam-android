@@ -26,17 +26,25 @@ public class MainActivity extends AppCompatActivity {
             switch (item.getItemId()) {
                 case R.id.navigation_map:
                     return true;
-                case R.id.navigation_data:
+                case R.id.navigation_data: {
                     DataFilesFragment fragment = new DataFilesFragment();
 
                     FragmentManager fm = getSupportFragmentManager();
                     FragmentTransaction transaction = fm.beginTransaction();
                     transaction.replace(R.id.contentFrame, fragment);
                     transaction.commit();
+                }
                     return true;
-                case R.id.navigation_settings:
-                    Intent intent = new Intent(MainActivity.this, SerialConsoleActivity.class);
-                    startActivity(intent);
+                case R.id.navigation_settings: {
+                    //Intent intent = new Intent(MainActivity.this, SerialConsoleActivity.class);
+                    //startActivity(intent);
+                    SerialConsoleFragment fragment = new SerialConsoleFragment();
+
+                    FragmentManager fm = getSupportFragmentManager();
+                    FragmentTransaction transaction = fm.beginTransaction();
+                    transaction.replace(R.id.contentFrame, fragment);
+                    transaction.commit();
+                }
                     return true;
             }
             return false;
