@@ -5,6 +5,8 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.aquarius.datacollector.api.responses.FileResponse;
+import com.aquarius.datacollector.database.DataLogger;
+import com.aquarius.datacollector.database.Project;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +18,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -93,7 +96,7 @@ public class Api {
         }
     }
 
-    // Attachments
+    // Attachments - synchronous
     public FileResponse uploadTimeseries(Context context, File file) throws IOException, ErrorMessageException {
         RequestBody requestFile =
                 RequestBody.create(
@@ -109,6 +112,18 @@ public class Api {
         Response<FileResponse> response = call.execute();
 
         return (FileResponse) handleResponse(context, response);
+    }
+
+
+    // Asynchronous
+    public void getDataloggers(Context context, int projectId,  Callback<List<DataLogger>> callback) throws IOException, ErrorMessageException {
+        Call<List<DataLogger>> call = service.getDataloggers(projectId);
+        call.enqueue(callback);
+    }
+
+    public void getProjects(Context context, Callback<List<Project>> callback) throws IOException, ErrorMessageException {
+        Call<List<Project>> call = service.getProjects();
+        call.enqueue(callback);
     }
 
 

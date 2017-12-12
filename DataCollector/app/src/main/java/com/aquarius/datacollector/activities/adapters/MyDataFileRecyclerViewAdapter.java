@@ -1,4 +1,4 @@
-package com.aquarius.datacollector.activities;
+package com.aquarius.datacollector.activities.adapters;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -7,12 +7,11 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.aquarius.datacollector.R;
-import com.aquarius.datacollector.activities.DataFilesFragment.OnListFragmentInteractionListener;
+import com.aquarius.datacollector.activities.fragments.DataFilesFragment.OnListFragmentInteractionListener;
 import com.aquarius.datacollector.database.DataLog;
 import com.aquarius.datacollector.dummy.DummyContent.DummyItem;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import io.realm.OrderedRealmCollection;
@@ -28,7 +27,7 @@ public class MyDataFileRecyclerViewAdapter  extends RealmRecyclerViewAdapter<Dat
         private boolean inDeletionMode = false;  // Not Used
         private Set<Integer> countersToDelete = new HashSet<Integer>(); // Not used
 
-       MyDataFileRecyclerViewAdapter(OrderedRealmCollection<DataLog> data) {
+       public MyDataFileRecyclerViewAdapter(OrderedRealmCollection<DataLog> data) {
             super(data, true);
             setHasStableIds(true);
         }
@@ -48,7 +47,7 @@ public class MyDataFileRecyclerViewAdapter  extends RealmRecyclerViewAdapter<Dat
         @Override
         public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View itemView = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.fragment_datafiles, parent, false);
+                    .inflate(R.layout.datafiles_list_item, parent, false);
             return new MyViewHolder(itemView);
         }
 

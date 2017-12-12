@@ -30,30 +30,6 @@
         android:fadeScrollbars="false"
         android:maxLines="1000"/>
 
-    <EditText
-        android:id="@+id/editText1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView1"
-        android:layout_alignRight="@+id/textView1"
-        android:layout_below="@+id/textView1"
-        android:layout_marginTop="28dp"
-        android:layout_above="@+id/buttonSend"
-        android:ems="10">
-
-    </EditText>
-
-    <Button
-        android:id="@+id/buttonSend"
-        style="?borderlessButtonStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/editText1"
-        android:layout_alignRight="@+id/editText1"
-        android:layout_alignParentBottom="true"
-        android:layout_marginTop="42dp"
-        android:text="Send"/>
-
     <TextView
         android:id="@+id/dataloggerIdTextView"
         android:layout_width="wrap_content"
