@@ -1,4 +1,4 @@
-package com.aquarius.datacollector.activities;
+package com.aquarius.datacollector.activities.fragments;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -43,7 +43,7 @@ import io.realm.Realm;
  * Created by matthewxi on 11/8/17.
  */
 
-public class SerialConsoleFragment extends Fragment implements ControlListener {
+public class SerialDownloadFragment extends Fragment implements ControlListener {
 
     private static String TAG = "SerialConsoleFragment";
 
@@ -93,7 +93,7 @@ public class SerialConsoleFragment extends Fragment implements ControlListener {
     private TextView dataLoggerIdTextView;
     private TextView lastDownloadDateTextView;
 
-    private SerialConsoleFragment.MyHandler mHandler;
+    private SerialDownloadFragment.MyHandler mHandler;
     private final ServiceConnection usbConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName arg0, IBinder arg1) {
@@ -116,7 +116,7 @@ public class SerialConsoleFragment extends Fragment implements ControlListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mHandler = new SerialConsoleFragment.MyHandler(this);
+        mHandler = new SerialDownloadFragment.MyHandler(this);
 
         control = new Control(getContext());
         control.setListener(this);
@@ -128,11 +128,12 @@ public class SerialConsoleFragment extends Fragment implements ControlListener {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.serial_console, container, false);
+        View view = inflater.inflate(R.layout.serial_download_fragment, container, false);
 
         display = (TextView) view.findViewById(R.id.textView1);
         display.setMovementMethod(new ScrollingMovementMethod());
-        editText = (EditText) view.findViewById(R.id.editText1);
+
+      /*  editText = (EditText) view.findViewById(R.id.editText1);
         editText.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 // If the event is a key-down event on the "enter" button
@@ -157,6 +158,8 @@ public class SerialConsoleFragment extends Fragment implements ControlListener {
                 }
             }
         });
+        */
+
         Button requestDownloadButton = (Button) view.findViewById(R.id.buttonRequestDownload);
         requestDownloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -260,9 +263,9 @@ public class SerialConsoleFragment extends Fragment implements ControlListener {
      * This handler will be passed to UsbService. Data received from serial port is displayed through this handler
      */
     private static class MyHandler extends Handler {
-        private final WeakReference<SerialConsoleFragment> mFragment;
+        private final WeakReference<SerialDownloadFragment> mFragment;
 
-        public MyHandler(SerialConsoleFragment fragment) {
+        public MyHandler(SerialDownloadFragment fragment) {
             mFragment = new WeakReference<>(fragment);
         }
 

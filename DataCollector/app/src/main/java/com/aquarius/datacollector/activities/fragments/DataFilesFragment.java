@@ -1,4 +1,4 @@
-package com.aquarius.datacollector.activities;
+package com.aquarius.datacollector.activities.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -14,8 +14,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.aquarius.datacollector.R;
+import com.aquarius.datacollector.activities.adapters.MyDataFileRecyclerViewAdapter;
 import com.aquarius.datacollector.database.DataLog;
-import com.aquarius.datacollector.dummy.DummyContent;
+import com.aquarius.datacollector.database.DataLogger;
 import com.aquarius.datacollector.dummy.DummyContent.DummyItem;
 import com.aquarius.datacollector.service.UploadService;
 
@@ -80,12 +81,24 @@ public class DataFilesFragment extends Fragment {
                 return false;
             }
         });
+        MenuItem clear = menu.add("Clear");
+        clear.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                realm.beginTransaction();
+                realm.delete(DataLog.class);
+                realm.delete(DataLogger.class);
+                realm.commitTransaction();
+                return false;
+            }
+        });
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_datafiles_list, container, false);
+        View view = inflater.inflate(R.layout.datafiles_fragment, container, false);
 
         // Set the adapter
         if (view instanceof RecyclerView) {
