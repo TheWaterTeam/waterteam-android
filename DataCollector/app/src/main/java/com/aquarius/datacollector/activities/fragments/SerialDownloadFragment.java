@@ -133,7 +133,8 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
         display = (TextView) view.findViewById(R.id.textView1);
         display.setMovementMethod(new ScrollingMovementMethod());
 
-      /*  editText = (EditText) view.findViewById(R.id.editText1);
+        /*
+        editText = (EditText) view.findViewById(R.id.editText1);
         editText.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 // If the event is a key-down event on the "enter" button
@@ -145,10 +146,12 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
                 return false;
             }
         });
+        */
 
         dataLoggerIdTextView = (TextView) view.findViewById(R.id.dataloggerIdTextView);
         lastDownloadDateTextView = (TextView) view.findViewById(R.id.lastDownloadDateTextView);
 
+        /*
         Button sendButton = (Button) view.findViewById(R.id.buttonSend);
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
