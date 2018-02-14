@@ -53,6 +53,9 @@
             android:name="com.aquarius.datacollector.service.UploadService"
             android:enabled="true">
         </service>
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="6147c0611ae6a9861d25c92f7a348b0d3d1c973b" />
     </application>
 
 </manifest>

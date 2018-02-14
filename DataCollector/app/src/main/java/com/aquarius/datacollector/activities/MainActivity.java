@@ -14,6 +14,8 @@ import com.aquarius.datacollector.activities.fragments.DataFilesFragment;
 import com.aquarius.datacollector.activities.fragments.ProjectFragment;
 import com.aquarius.datacollector.activities.fragments.SerialDownloadFragment;
 
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
 
 public class MainActivity extends AppCompatActivity {
@@ -64,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_main);
 
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
