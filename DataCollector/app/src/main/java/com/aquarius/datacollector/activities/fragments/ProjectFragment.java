@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.aquarius.datacollector.R;
 import com.aquarius.datacollector.activities.adapters.DataLoggerRecyclerViewAdapter;
+import com.aquarius.datacollector.activities.util.VerticalSpaceItemDecorator;
 import com.aquarius.datacollector.api.Api;
 import com.aquarius.datacollector.api.ErrorMessageException;
 import com.aquarius.datacollector.database.DataLog;
@@ -51,7 +52,7 @@ public class ProjectFragment extends Fragment {
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
     // TODO: Customize parameters
-    private int mColumnCount = 2;
+    private int mColumnCount = 1;
     private DataFilesFragment.OnListFragmentInteractionListener mListener;
 
     private Realm realm;
@@ -133,18 +134,16 @@ public class ProjectFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dataloggers_fragment, container, false);
 
-        // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            mRecyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                mRecyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                mRecyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-            }
-
-            refreshDataLoggersList();
+        Context context = view.getContext();
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.list);
+        VerticalSpaceItemDecorator verticalSpaceItemDecorator = new VerticalSpaceItemDecorator(10);
+        mRecyclerView.addItemDecoration(verticalSpaceItemDecorator);
+        if (mColumnCount <= 1) {
+            mRecyclerView.setLayoutManager(new LinearLayoutManager(context));
+        } else {
+            mRecyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
         }
+         refreshDataLoggersList();
         return view;
     }
 

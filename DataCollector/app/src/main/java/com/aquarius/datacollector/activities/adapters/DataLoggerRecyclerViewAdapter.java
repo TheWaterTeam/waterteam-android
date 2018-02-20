@@ -12,6 +12,8 @@ import com.aquarius.datacollector.database.DataLog;
 import com.aquarius.datacollector.database.DataLogger;
 import com.aquarius.datacollector.dummy.DummyContent.DummyItem;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,8 +45,11 @@ public class DataLoggerRecyclerViewAdapter extends RealmRecyclerViewAdapter<Data
         public void onBindViewHolder(MyViewHolder holder, int position) {
             final DataLogger obj = getItem(position);
             //noinspection ConstantConditions
-            holder.uuid.setText(obj.getUUID());
-            holder.lastDownloadDate.setText(obj.getLastDownloadDate());
+            holder.uuid.setText("UUID:" + obj.getUUID());
+            Date lastDownloadDate = new Date(Long.parseLong(obj.getLastDownloadDate()) * 1000);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm zzz");
+            String lastDownloadDateString = dateFormat.format(lastDownloadDate);
+            holder.lastDownloadDate.setText("Last Download: "  + lastDownloadDateString);
             holder.description.setText(obj.getDescription());
         }
 

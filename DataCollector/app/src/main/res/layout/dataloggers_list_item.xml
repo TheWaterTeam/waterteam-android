@@ -2,13 +2,14 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:background="@drawable/rounded_corners"
+    android:padding="10dp"
    >
 
     <TextView
         android:id="@+id/uuid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/text_margin"
         android:text="UUID"
         android:textAppearance="?attr/textAppearanceListItem" />
 
@@ -19,6 +20,7 @@
         android:layout_alignLeft="@+id/uuid"
         android:layout_alignStart="@+id/uuid"
         android:layout_below="@+id/uuid"
+        android:layout_marginTop="6dp"
         android:text="Last Download Date"
         android:textAppearance="?attr/textAppearanceListItem" />
 
