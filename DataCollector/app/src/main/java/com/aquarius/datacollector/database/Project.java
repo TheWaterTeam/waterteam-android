@@ -1,5 +1,10 @@
 package com.aquarius.datacollector.database;
 
+import com.google.gson.annotations.SerializedName;
+
+import java.util.UUID;
+
+import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
 
@@ -8,20 +13,31 @@ import io.realm.annotations.PrimaryKey;
  */
 
 public class Project extends RealmObject {
-    @PrimaryKey
-    int projectId;
+
+    public static final String DEFAULT_PROJECT_NAME = "First Project";
+
+    private String UUID;
+
     String name;
+    boolean defaultProject;
     double westernLongitude;
     double northernLatitude;
     double easternLongitude;
     double southernLatitude;
 
-    public int getProjectId() {
-        return projectId;
+    public RealmList<DataLogger> dataLoggers; // Declare one-to-many relationships
+
+
+    public Project() {
+        UUID = java.util.UUID.randomUUID().toString();
     }
 
-    public void setProjectId(int projectId) {
-        this.projectId = projectId;
+    public String getUUID() {
+        return UUID;
+    }
+
+    public void setUUID(String UUID) {
+        this.UUID = UUID;
     }
 
     public String getName() {
@@ -30,6 +46,14 @@ public class Project extends RealmObject {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isDefaultProject() {
+        return defaultProject;
+    }
+
+    public void setDefaultProject(boolean defaultProject) {
+        this.defaultProject = defaultProject;
     }
 
     public double getWesternLongitude() {

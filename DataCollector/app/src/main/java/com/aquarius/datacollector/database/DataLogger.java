@@ -3,6 +3,8 @@ package com.aquarius.datacollector.database;
 import com.google.gson.annotations.SerializedName;
 
 import io.realm.RealmObject;
+import io.realm.RealmResults;
+import io.realm.annotations.LinkingObjects;
 
 /**
  * Created by matthewxi on 10/23/17.
@@ -18,6 +20,13 @@ public class DataLogger extends RealmObject {
 
     private double latitude;
     private double longitude;
+
+    @LinkingObjects("dataLoggers")
+    private final RealmResults<Project> project;
+
+    public DataLogger() {
+        project = null;
+    }
 
     public String getUUID() {
         return UUID;

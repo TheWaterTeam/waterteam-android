@@ -14,7 +14,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,17 +23,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aquarius.datacollector.R;
+import com.aquarius.datacollector.application.Preferences;
 import com.aquarius.datacollector.control.Control;
 import com.aquarius.datacollector.control.ControlListener;
 import com.aquarius.datacollector.database.DataLog;
 import com.aquarius.datacollector.database.DataLogger;
+import com.aquarius.datacollector.database.Project;
 import com.aquarius.datacollector.service.UsbService;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 import io.realm.Realm;
@@ -47,7 +47,7 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
 
     private static String TAG = "SerialConsoleFragment";
 
-    private String currentUUID;
+    private String connectedProbeUUID;
 
 
     /*
@@ -168,8 +168,12 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
             @Override
             public void onClick(View v) {
 
-                String command = ">WT_REQUEST_DOWNLOAD:" + String.valueOf(connectedDataLogger.getLastDownloadDate()) + "<";
-                sendCommand(command);
+                if(connectedDataLogger != null) {
+                    String command = ">WT_REQUEST_DOWNLOAD:" + String.valueOf(connectedDataLogger.getLastDownloadDate()) + "<";
+                    sendCommand(command);
+                } else {
+                    display.append("No datalogger connected\n");
+                }
 
             }
         });
@@ -189,7 +193,7 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
 
     public void sendCommand(String command){
         Log.d(TAG, "Send Command");
-        display.append(command + "\n");
+        display.append("Command:" + command + "\n");
         if (usbService != null) { // if UsbService was correctly binded, Send data
             usbService.write(command.getBytes());
         }
@@ -244,13 +248,16 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
     }
 
     private void updateConnectedDatalogger(String uuid){
-        currentUUID = uuid;
-        List<DataLogger> list = realm.where(DataLogger.class).findAll();
-        connectedDataLogger = realm.where(DataLogger.class).equalTo("UUID", currentUUID).findFirst();
+        connectedProbeUUID = uuid;
+        display.append("Looking for Datalogger object " + connectedProbeUUID);
+        connectedDataLogger = realm.where(DataLogger.class).equalTo("UUID", connectedProbeUUID).findFirst();
         if(connectedDataLogger == null) {
+            display.append("Created new Datalogger object");
             realm.beginTransaction();
             connectedDataLogger = realm.createObject(DataLogger.class);
             connectedDataLogger.setUUID(uuid);
+            Project selectedProject = Preferences.getSelectedProject(getContext(), realm);
+            selectedProject.dataLoggers.add(connectedDataLogger);
             realm.commitTransaction();
         }
 
@@ -277,7 +284,7 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
             switch (msg.what) {
                 case UsbService.MESSAGE_FROM_SERIAL_PORT:
                     String data = (String) msg.obj;
-                    mFragment.get().display.append(data);
+                    //mFragment.get().display.append("Data: " + data);
                     try {
                         Log.d(TAG, "Received Data "+ data);
                         mFragment.get().control.receivedData(data);
@@ -342,8 +349,6 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
     public void fileTransfered(File fileTransferStorage) {
         // put file into the database so we can upload it later
         // this is where we need to at least now the device_id of this device
-        // is this some unique USB identifier? NO
-        // so this is why we need the RFID chip, but many Androids won't have RFID..
 
         Number lastId = realm.where(DataLog.class).max("id");
         int nextID = 1;
@@ -353,7 +358,7 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
         realm.beginTransaction();
         DataLog dataLog = realm.createObject(DataLog.class, nextID);
         dataLog.setUploaded(false);
-        dataLog.setDeviceId(1); // TODO: Hard coded device Id
+        dataLog.setProbeUUID(connectedProbeUUID); // TODO: Hard coded device Id
         dataLog.setFilePath(fileTransferStorage.getPath());
         dataLog.setDateRetreived(new Date());
         realm.commitTransaction();

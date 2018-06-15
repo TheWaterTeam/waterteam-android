@@ -3,8 +3,6 @@ package com.aquarius.datacollector.activities.fragments;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
@@ -21,11 +19,12 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.aquarius.datacollector.R;
+import com.aquarius.datacollector.activities.MainActivity;
 import com.aquarius.datacollector.activities.adapters.DataLoggerRecyclerViewAdapter;
 import com.aquarius.datacollector.activities.util.VerticalSpaceItemDecorator;
 import com.aquarius.datacollector.api.Api;
 import com.aquarius.datacollector.api.ErrorMessageException;
-import com.aquarius.datacollector.database.DataLog;
+import com.aquarius.datacollector.application.Preferences;
 import com.aquarius.datacollector.database.DataLogger;
 import com.aquarius.datacollector.database.Project;
 import com.aquarius.datacollector.dummy.DummyContent;
@@ -34,8 +33,6 @@ import java.io.IOException;
 import java.util.List;
 
 import io.realm.Realm;
-import io.realm.RealmQuery;
-import io.realm.RealmResults;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -58,9 +55,10 @@ public class ProjectFragment extends Fragment {
     private Realm realm;
 
     private RecyclerView mRecyclerView;
+    private Project selectedProject;
 
 
-        /**
+    /**
          * Mandatory empty constructor for the fragment manager to instantiate the
          * fragment (e.g. upon screen orientation changes).
          */
@@ -77,16 +75,30 @@ public class ProjectFragment extends Fragment {
         }
 
         realm = Realm.getDefaultInstance();
+
+        selectedProject = Preferences.getSelectedProject(getContext(), realm);
+        if(selectedProject == null){
+            Log.d(TAG, "Creating default project");
+            selectedProject = Preferences.getDefaultProject(realm);
+            Preferences.setSelectedProject(getContext(), selectedProject);
+        } else {
+            Log.d(TAG, "Found project");
+        }
+
+
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        MenuItem upload = menu.add("Switch Project");
-        upload.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        MenuItem selectProject = menu.add("Switch Project");
+        MenuItem newProject = menu.add("New Project");
+
+        selectProject.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 try {
+                    // TODO do we really want to talk to the server here ?
                     Api.getInstance().getProjects(getContext(), new Callback<List<Project>>() {
                         @Override
                         public void onResponse(Call<List<Project>> call, Response<List<Project>> response) {
@@ -129,6 +141,8 @@ public class ProjectFragment extends Fragment {
 
     }
 
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -152,23 +166,27 @@ public class ProjectFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        /*
         try {
             // This is not a sync
+            // this is not checking for existing dataloggers
 
             Api.getInstance().getDataloggers(getContext(), 5, new Callback<List<DataLogger>>() {
                 @Override
                 public void onResponse(Call<List<DataLogger>> call, Response<List<DataLogger>> response) {
-                    List<DataLogger> dataloggers = response.body();
-                    realm.beginTransaction();
-                    realm.delete(DataLogger.class);
-                    realm.copyToRealm(dataloggers);
-                    realm.commitTransaction();
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            refreshDataLoggersList();
-                        }
-                    });
+                    if(getActivity() != null) {
+                        List<DataLogger> dataloggers = response.body();
+                        realm.beginTransaction();
+                        realm.delete(DataLogger.class);
+                        realm.copyToRealm(dataloggers);
+                        realm.commitTransaction();
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                refreshDataLoggersList();
+                            }
+                        });
+                    }
                 }
 
                 @Override
@@ -177,11 +195,13 @@ public class ProjectFragment extends Fragment {
                 }
             });
 
+
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ErrorMessageException e) {
             e.printStackTrace();
         }
+        */
     }
 
     @Override
@@ -201,8 +221,8 @@ public class ProjectFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-
-
+        ((MainActivity) getActivity())
+                .setActionBarTitle(selectedProject.getName());
     }
 
     @Override
@@ -234,13 +254,9 @@ public class ProjectFragment extends Fragment {
 
     private void refreshDataLoggersList() {
 
-        //TODO: Query from Realm here.
-        RealmQuery<DataLogger> query = realm.where(DataLogger.class);
-        RealmResults<DataLogger> results = query.findAll();
-
         // TODO use the Realm adapter
         if(mRecyclerView != null){
-            mRecyclerView.setAdapter(new DataLoggerRecyclerViewAdapter(results)); //, mListener));
+            mRecyclerView.setAdapter(new DataLoggerRecyclerViewAdapter(selectedProject.dataLoggers)); //, mListener));
         }
 
     }

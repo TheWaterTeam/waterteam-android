@@ -14,13 +14,20 @@ import com.aquarius.datacollector.activities.fragments.DataFilesFragment;
 import com.aquarius.datacollector.activities.fragments.ProjectFragment;
 import com.aquarius.datacollector.activities.fragments.SerialDownloadFragment;
 
+import com.aquarius.datacollector.database.DataLogger;
+import com.aquarius.datacollector.database.Project;
 import com.crashlytics.android.Crashlytics;
 import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
+import io.realm.RealmQuery;
+import io.realm.RealmResults;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView mTextMessage;
+
+    private Realm realm;
+
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -73,13 +80,21 @@ public class MainActivity extends AppCompatActivity {
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         Realm.init(this);
+        realm = Realm.getDefaultInstance();
 
+
+        // Go to the project fragment
         ProjectFragment fragment = new ProjectFragment();
 
         FragmentManager fm = getSupportFragmentManager();
         FragmentTransaction transaction = fm.beginTransaction();
         transaction.replace(R.id.contentFrame, fragment);
         transaction.commit();
+
     }
 
+
+    public void setActionBarTitle(String title) {
+        getSupportActionBar().setTitle(title);
+    }
 }

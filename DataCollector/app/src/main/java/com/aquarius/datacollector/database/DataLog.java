@@ -12,7 +12,7 @@ import io.realm.annotations.PrimaryKey;
 public class DataLog extends RealmObject {
     @PrimaryKey
     private long id;
-    private long deviceId;
+    private String probeUUID;
     private String filePath;
     private boolean uploaded;
     private Date dateRetreived;
@@ -22,12 +22,12 @@ public class DataLog extends RealmObject {
         return id;
     }
 
-    public long getDeviceId() {
-        return deviceId;
+    public String getProbeUUID() {
+        return probeUUID;
     }
 
-    public void setDeviceId(long deviceId) {
-        this.deviceId = deviceId;
+    public void setProbeUUID(String probeUUID) {
+        this.probeUUID = probeUUID;
     }
 
     public boolean isUploaded() {

@@ -43,7 +43,7 @@ public class Api {
 
         if (instance == null) {
             instance = new Api();
-            instance.initialize("http://10.0.0.16:3000/");
+            instance.initialize("http://167.99.110.39:3000/");
             }
         return instance;
     }
