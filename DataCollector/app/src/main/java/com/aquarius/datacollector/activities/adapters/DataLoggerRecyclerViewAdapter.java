@@ -8,14 +8,11 @@ import android.widget.TextView;
 
 import com.aquarius.datacollector.R;
 import com.aquarius.datacollector.activities.fragments.DataFilesFragment.OnListFragmentInteractionListener;
-import com.aquarius.datacollector.database.DataLog;
 import com.aquarius.datacollector.database.DataLogger;
 import com.aquarius.datacollector.dummy.DummyContent.DummyItem;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import io.realm.OrderedRealmCollection;
 import io.realm.RealmRecyclerViewAdapter;
@@ -46,7 +43,7 @@ public class DataLoggerRecyclerViewAdapter extends RealmRecyclerViewAdapter<Data
             final DataLogger obj = getItem(position);
             //noinspection ConstantConditions
             holder.uuid.setText("UUID:" + obj.getUUID());
-            Date lastDownloadDate = new Date(Long.parseLong(obj.getLastDownloadDate()) * 1000);
+            Date lastDownloadDate = new Date(Long.parseLong(obj.getLastDownloadedFileDate()) * 1000);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd hh:mm zzz");
             String lastDownloadDateString = dateFormat.format(lastDownloadDate);
             holder.lastDownloadDate.setText("Last Download: "  + lastDownloadDateString);

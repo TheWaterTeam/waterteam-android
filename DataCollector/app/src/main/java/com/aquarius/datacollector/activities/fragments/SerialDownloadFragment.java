@@ -34,6 +34,7 @@ import com.aquarius.datacollector.service.UsbService;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Set;
 
@@ -48,6 +49,7 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
     private static String TAG = "SerialConsoleFragment";
 
     private String connectedProbeUUID;
+    private long downloadRequestTime;
 
 
     /*
@@ -167,9 +169,10 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
         requestDownloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                SerialDownloadFragment.this.downloadRequestTime = System.currentTimeMillis() / 1000L;
 
                 if(connectedDataLogger != null) {
-                    String command = ">WT_REQUEST_DOWNLOAD:" + String.valueOf(connectedDataLogger.getLastDownloadDate()) + "<";
+                    String command = ">WT_REQUEST_DOWNLOAD:" + String.valueOf(connectedDataLogger.getLastDownloadedFileDate()) + "<";
                     sendCommand(command);
                 } else {
                     display.append("No datalogger connected\n");
@@ -353,7 +356,11 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
                 display.append("GOT LAST DOWNLOAD DATE " + lastDownloadFromDatalogger+ "\n\n");
 
                 realm.beginTransaction();
-                connectedDataLogger.setLastDownloadDate(lastDownloadFromDatalogger);
+                long dv = Long.valueOf(this.downloadRequestTime)*1000;// its need to be in milisecond
+                Date df = new java.util.Date(dv);
+                String downloadDateString = new SimpleDateFormat("MM dd, yyyy hh:mma").format(df);
+                connectedDataLogger.setLastDownloadedFileDate(lastDownloadFromDatalogger);
+                connectedDataLogger.setLastDownloadDate(String.valueOf(downloadDateString));
                 realm.commitTransaction();
 
                 updateUI();

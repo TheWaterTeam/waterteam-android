@@ -15,6 +15,7 @@ public class DataLogger extends RealmObject {
     @SerializedName("uniqueIdentifier")
     private String UUID;
 
+    private String lastDownloadedFileDate;
     private String lastDownloadDate;
     private String description;
 
@@ -36,16 +37,16 @@ public class DataLogger extends RealmObject {
         this.UUID = UUID;
     }
 
-    public String getLastDownloadDate() {
-        if(lastDownloadDate != null) {
-            return lastDownloadDate;
+    public String getLastDownloadedFileDate() {
+        if(lastDownloadedFileDate != null) {
+            return lastDownloadedFileDate;
         } else {
             return "0000000000";
         }
     }
 
-    public void setLastDownloadDate(String lastDownloadDate) {
-        this.lastDownloadDate = lastDownloadDate;
+    public void setLastDownloadedFileDate(String lastDownloadedFileDate) {
+        this.lastDownloadedFileDate = lastDownloadedFileDate;
     }
 
     public String getDescription() {
@@ -70,5 +71,16 @@ public class DataLogger extends RealmObject {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    public String getLastDownloadDate() {
+        if(this.lastDownloadDate != null) {
+            return this.lastDownloadDate;
+        } else {
+            return "0000000000";
+        }    }
+
+    public void setLastDownloadDate(String lastDownloadDate) {
+        this.lastDownloadDate = lastDownloadDate;
     }
 }
