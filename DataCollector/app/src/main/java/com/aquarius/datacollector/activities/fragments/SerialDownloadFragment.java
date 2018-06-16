@@ -365,6 +365,15 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
 
                 updateUI();
             }
+        } else if (command.contains("WT_REPORT_TIMESTAMP")){
+            if(command.contains(":")) {
+                String timestampFromDatalogger = command.substring(command.indexOf(":") + 1);
+                long timestamp = Long.parseLong(timestampFromDatalogger);
+                long dv = Long.valueOf(timestamp)*1000;// its need to be in milisecond
+                Date df = new java.util.Date(dv);
+                String dateString = new SimpleDateFormat("MM dd, yyyy hh:mma").format(df);
+                display.append("CURRENT DATALOGGER TIME: " + dateString);
+            }
         } else {
             display.append(command + "\n");
         }
