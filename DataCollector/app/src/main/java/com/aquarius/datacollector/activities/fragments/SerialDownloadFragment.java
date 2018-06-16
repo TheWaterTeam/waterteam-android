@@ -178,6 +178,22 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
             }
         });
 
+        Button setRTCButton = (Button) view.findViewById(R.id.setRTC);
+        setRTCButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                long unixTime = System.currentTimeMillis() / 1000L;
+                if(connectedDataLogger != null) {
+                    String command = ">WT_SET_RTC:" + String.valueOf(unixTime) + "<";
+                    sendCommand(command);
+                } else {
+                    display.append("No datalogger connected\n");
+                }
+
+            }
+        });
+
 
         return view;
     }
@@ -342,6 +358,8 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
 
                 updateUI();
             }
+        } else {
+            display.append(command + "\n");
         }
     }
 

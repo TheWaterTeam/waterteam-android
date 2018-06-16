@@ -52,4 +52,12 @@
         android:layout_below="@+id/dataloggerIdTextView"
         android:text="Last Download Date:" />
 
+    <Button
+        android:id="@+id/setRTC"
+        android:layout_width="179dp"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/buttonRequestDownload"
+        android:layout_toEndOf="@+id/buttonRequestDownload"
+        android:text="Set RTC" />
+
 </RelativeLayout>
