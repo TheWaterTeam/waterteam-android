@@ -197,6 +197,26 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
             }
         });
 
+        Button deployButton = (Button) view.findViewById(R.id.deployButton);
+        deployButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                long unixTime = System.currentTimeMillis() / 1000L;
+                if(connectedDataLogger != null) {
+                    long dv = unixTime*1000;// its need to be in milisecond
+                    Date df = new java.util.Date(dv);
+                    String deploymentIdentifier = new SimpleDateFormat("yyyyMMddhhmmss").format(df);
+                    deploymentIdentifier = "SITENAME_" + deploymentIdentifier;
+                    String command = ">WT_DEPLOY:" + deploymentIdentifier + "<";
+                    sendCommand(command);
+                } else {
+                    display.append("No datalogger connected\n");
+                }
+
+            }
+        });
+
 
         return view;
     }

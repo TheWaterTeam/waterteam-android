@@ -61,4 +61,13 @@
         android:layout_toEndOf="@+id/buttonRequestDownload"
         android:text="Set RTC" />
 
+    <Button
+        android:id="@+id/deployButton"
+        android:layout_width="347dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/lastDownloadDateTextView"
+        android:layout_marginEnd="6dp"
+        android:text="Deploy" />
+
 </RelativeLayout>
