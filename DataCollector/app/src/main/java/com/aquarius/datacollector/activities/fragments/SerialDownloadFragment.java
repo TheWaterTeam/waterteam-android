@@ -53,14 +53,19 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
     /*
  * Notifications from UsbService will be received here.
  */
+
+    // TODO: check for existing connection 
+    // http://blog.blecentral.com/2015/10/01/handling-usb-connections-in-android/
+
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            final Handler handler = new Handler();
+
             switch (intent.getAction()) {
                 case UsbService.ACTION_USB_PERMISSION_GRANTED: // USB PERMISSION GRANTED
                     Toast.makeText(context, "USB Ready", Toast.LENGTH_SHORT).show();
 
-                    final Handler handler = new Handler();
                     handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -77,6 +82,17 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
                     break;
                 case UsbService.ACTION_USB_DISCONNECTED: // USB DISCONNECTED
                     Toast.makeText(context, "USB disconnected", Toast.LENGTH_SHORT).show();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            connectedDataLogger = null;
+                            connectedProbeUUID = "";
+                            display.setText("");
+                            dataLoggerIdTextView.setText("");
+                            lastDownloadDateTextView.setText("");
+                        }
+                    }, 3000);
+
                     break;
                 case UsbService.ACTION_USB_NOT_SUPPORTED: // USB NOT SUPPORTED
                     Toast.makeText(context, "USB device not supported", Toast.LENGTH_SHORT).show();
@@ -303,7 +319,9 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
                     //mFragment.get().display.append("Data: " + data);
                     try {
                         Log.d(TAG, "Received Data "+ data);
-                        mFragment.get().control.receivedData(data);
+                        if(mFragment.get() != null) {
+                            mFragment.get().control.receivedData(data);
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                         // We should probably reset the connction / switch back to control mode here.
