@@ -66,7 +66,7 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
                     handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            sendCommand(">WT_OPEN_CONNECTION<");
+                            sendCommand(">WT_OPEN<");
                         }
                     }, 3000);
 
@@ -172,7 +172,7 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
                 SerialDownloadFragment.this.downloadRequestTime = System.currentTimeMillis() / 1000L;
 
                 if(connectedDataLogger != null) {
-                    String command = ">WT_REQUEST_DOWNLOAD:" + String.valueOf(connectedDataLogger.getLastDownloadedFileDate()) + "<";
+                    String command = ">WT_DOWNLOAD:" + String.valueOf(connectedDataLogger.getLastDownloadedFileDate()) + "<";
                     sendCommand(command);
                 } else {
                     display.append("No datalogger connected\n");
@@ -349,13 +349,13 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
 
         // If the command is AQ_TRANSFER_READY
         // then go into file transfer mode mode, writing all the data sent out to a text file
-        if(command.contains("WT_IDENTIFY_DEVICE")) {
+        if(command.contains("WT_IDENTIFY")) {
             String deviceUUID = command.substring(command.indexOf(":")+1);
             display.append("GOT DEVICE UUID " + deviceUUID + "\n\n");
             updateConnectedDatalogger(deviceUUID);
 
 
-        } else if(command.contains("WT_TRANSFER_READY")){
+        } else if(command.contains("WT_READY")){
             // we are in file transfer mode
             // switch to file transfer mode
             try {
@@ -368,7 +368,7 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
             usbService.write(Control.ACK.getBytes());
             display.append("SEND " + Control.ACK + "\n\n");
 
-        } else if (command.contains("WT_TRANSFER_COMPLETE")){
+        } else if (command.contains("WT_COMPLETE")){
             if(command.contains(":")){
                 String lastDownloadFromDatalogger = command.substring(command.indexOf(":")+1);
                 // TODO store this lastDownloadFromDatalogger into the database on this device
@@ -385,7 +385,7 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
 
                 updateUI();
             }
-        } else if (command.contains("WT_REPORT_TIMESTAMP")){
+        } else if (command.contains("WT_TIMESTAMP")){
             if(command.contains(":")) {
                 String timestampFromDatalogger = command.substring(command.indexOf(":") + 1);
                 long timestamp = Long.parseLong(timestampFromDatalogger);
