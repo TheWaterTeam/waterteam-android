@@ -54,30 +54,65 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
  * Notifications from UsbService will be received here.
  */
 
-    // TODO: check for existing connection 
+    // TODO: check for existing connection
     // http://blog.blecentral.com/2015/10/01/handling-usb-connections-in-android/
 
     private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(Context context, final Intent intent) {
             final Handler handler = new Handler();
 
             switch (intent.getAction()) {
-                case UsbService.ACTION_USB_PERMISSION_GRANTED: // USB PERMISSION GRANTED
+                case UsbService.ACTION_USB_READY: // USB PERMISSION GRANTED
                     Toast.makeText(context, "USB Ready", Toast.LENGTH_SHORT).show();
+
+                    handler.postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                display.append("ACTION_USB_READY\n");
+                                            }
+                                        }, 200);
 
                     handler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             sendCommand(">WT_OPEN_CONNECTION<");
                         }
-                    }, 3000);
+                    }, 3000);  // This delay is
 
                     break;
+                case UsbService.ACTION_USB_PERMISSION_GRANTED: // USB PERMISSION GRANTED
+                    Toast.makeText(context, "USB Permission Granted", Toast.LENGTH_SHORT).show();
+
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            display.append("ACTION_USB_PERMISSION_GRANTED\n");
+                            display.append("VID " + intent.getIntExtra("vid", 0));
+                            display.append("PID " + intent.getIntExtra("pid", 0));
+
+                        }
+                    }, 200);
+
+                    break;
+
+
                 case UsbService.ACTION_USB_PERMISSION_NOT_GRANTED: // USB PERMISSION NOT GRANTED
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            display.append("ACTION_USB_PERMISSION_NOT_GRANTED\n");
+                        }
+                    }, 200);
                     Toast.makeText(context, "USB Permission not granted", Toast.LENGTH_SHORT).show();
                     break;
                 case UsbService.ACTION_NO_USB: // NO USB CONNECTED
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            display.append("ACTION_NO_USB\n");
+                        }
+                    }, 200);
                     Toast.makeText(context, "No USB connected", Toast.LENGTH_SHORT).show();
                     break;
                 case UsbService.ACTION_USB_DISCONNECTED: // USB DISCONNECTED
@@ -91,13 +126,25 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
                             dataLoggerIdTextView.setText("");
                             lastDownloadDateTextView.setText("");
                         }
-                    }, 3000);
+                    }, 200);
 
                     break;
                 case UsbService.ACTION_USB_NOT_SUPPORTED: // USB NOT SUPPORTED
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            display.append("ACTION_USB_NOT_SUPPORTED\n");
+                        }
+                    }, 200);
                     Toast.makeText(context, "USB device not supported", Toast.LENGTH_SHORT).show();
                     break;
                 case UsbService.ACTION_USB_ATTACHED:
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            display.append("ACTION_USB_ATTACHED\n");
+                        }
+                    }, 200);
                     //Toast.makeText(context, "USB Device Connected", Toast.LENGTH_SHORT).show();
                     break;
             }
@@ -271,6 +318,7 @@ public class SerialDownloadFragment extends Fragment implements ControlListener 
     private void setFilters() {
         IntentFilter filter = new IntentFilter();
         filter.addAction(UsbService.ACTION_USB_PERMISSION_GRANTED);
+        filter.addAction(UsbService.ACTION_USB_READY);
         filter.addAction(UsbService.ACTION_NO_USB);
         filter.addAction(UsbService.ACTION_USB_DISCONNECTED);
         filter.addAction(UsbService.ACTION_USB_NOT_SUPPORTED);
