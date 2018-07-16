@@ -103,6 +103,12 @@ public class UsbService extends Service {
                 if (granted) // User accepted our USB connection. Try to open the device as a serial port
                 {
                     Intent intent = new Intent(ACTION_USB_PERMISSION_GRANTED);
+                    int vid = device.getVendorId();
+                    int pid = device.getProductId();
+                    intent.putExtra("vid", vid);
+                    intent.putExtra("pid", pid);
+                    context.sendBroadcast(intent);
+
                     arg0.sendBroadcast(intent);
                     connection = usbManager.openDevice(device);
                     new ConnectionThread().start();
@@ -189,21 +195,22 @@ public class UsbService extends Service {
                 Log.d(TAG, "PID " + String.valueOf(devicePID));
 
 
-                if (deviceVID == 0x2341){
-                    Log.d(TAG, "Ask For Permission");
+                //if (deviceVID == 0x2341 || deviceVID == 0x239a){
+                //    Log.d(TAG, "Ask For Permission");
 
                     // There is a device connected to our Android device. Try to open it as a Serial Port.
                     requestUserPermission();
                     keep = false;
-                } else {
-                    connection = null;
-                    device = null;
-                }
+                //} else {
+                //    connection = null;
+                //   device = null;
+                //}
 
                 if (!keep)
                     break;
             }
             if (!keep) {
+                Log.d(TAG, "No USB devices connected");
                 // There is no USB devices connected (but usb host were listed). Send an intent to MainActivity.
                 Intent intent = new Intent(ACTION_NO_USB);
                 sendBroadcast(intent);
@@ -245,6 +252,7 @@ public class UsbService extends Service {
     private class ConnectionThread extends Thread {
         @Override
         public void run() {
+
             serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
             if (serialPort != null) {
                 if (serialPort.open()) {

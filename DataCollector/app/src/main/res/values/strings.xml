@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">Water Team</string>
+    <string name="app_name">Water Bear</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
-    <string name="app_title">Water Team</string>
+    <string name="app_title">Water Bear</string>
     <string name="refreshing">Refreshing...</string>
     <string name="textBtnRTS">RTS - Request To Send</string>
     <string name="textBtnDTR">DTR - Data Terminal Ready</string>

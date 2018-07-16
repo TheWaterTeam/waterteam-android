@@ -57,7 +57,7 @@ public class MyDataFileRecyclerViewAdapter  extends RealmRecyclerViewAdapter<Dat
             holder.data = obj;
             //noinspection ConstantConditions
             holder.date.setText(obj.getDateRetreived().toString());
-            holder.location.setText("Location 1"); // TODO: hardcoded
+            holder.location.setText(obj.getProbeUUID()); // TODO: hardcoded
             if(obj.isUploaded()){
                 holder.status.setText("Uploaded");
             } else {
