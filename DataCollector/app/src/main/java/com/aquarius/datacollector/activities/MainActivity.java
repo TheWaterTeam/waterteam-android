@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.aquarius.datacollector.BuildConfig;
 import com.aquarius.datacollector.R;
 import com.aquarius.datacollector.activities.fragments.DataFilesFragment;
 import com.aquarius.datacollector.activities.fragments.ProjectFragment;
@@ -21,6 +22,7 @@ import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -78,6 +80,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         //Fabric.with(this, new Crashlytics());
+
+        if (BuildConfig.DEBUG) {
+            Timber.plant(new Timber.DebugTree());
+        } else {
+            //Timber.plant(new CrashReportingTree());
+        }
 
         setContentView(R.layout.activity_main);
 

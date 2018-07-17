@@ -82,5 +82,4 @@ dependencies {
     api "com.louiscad.splitties:splitties-systemservices:$splitties_version"
 
     implementation "com.beepiz.blegattcoroutines:blegattcoroutines-core:$blegattcoroutines_version"
-    implementation "com.beepiz.blegattcoroutines:blegattcoroutines-genericaccess:$blegattcoroutines_version"
 }

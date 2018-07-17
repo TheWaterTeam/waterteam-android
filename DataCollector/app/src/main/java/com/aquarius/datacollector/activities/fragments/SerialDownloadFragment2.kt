@@ -2,6 +2,7 @@ package com.aquarius.datacollector.activities.fragments
 
 
 import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.BluetoothGattDescriptor
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
@@ -270,6 +271,17 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
         val characteristic: BluetoothGattCharacteristic = service[serialRXCharacteristicUUID]
                 ?: throw IllegalStateException("Characteristic not found")
         setCharacteristicNotificationsEnabled(characteristic, true);
+
+        val CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb"
+        val clientCharacteristicConfiguration = UUID.fromString(CHARACTERISTIC_CONFIG)
+
+        val config = characteristic.getDescriptor(clientCharacteristicConfiguration)
+        if(config != null) {
+            config.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+            writeDescriptor(config)
+        }
+
+        Timber.i("OKO OK")
     }
 
     fun GattConnection.logConnectionChanges() {
@@ -295,6 +307,8 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
         operationAttempt?.cancel()
         operationAttempt = launch(UI) {
 
+            Timber.i("Connecting to BLE device")
+
             val deviceConnection = GattConnection(device)
             try {
 
@@ -307,11 +321,28 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
                 Timber.i("Services discovered!")
                 //block(deviceConnection, services)
 
-                deviceConnection.notifyChannel.consumeEach {
-                    //Timber.i("Notified Value: " + it.val);
-                }
 
                 deviceConnection.notifySerial()
+                Timber.i("Set up serial notifications!")
+
+
+                async(UI) {
+
+                    while(true){
+                        val characteristicValue = deviceConnection.notifyChannel.receive()
+                        Timber.i("Notified Value: " + characteristicValue.getStringValue(0));
+                    }
+/*                 deviceConnection.notifyChannel.consumeEach {
+                        Timber.i("Notified Value: " + it.getStringValue(0));
+                 }
+                 */
+                }
+
+
+
+                Timber.i("Done somehow!")
+
+
 
             } catch (e: TimeoutCancellationException) {
                 Timber.e("Connection timed out after $connectionTimeoutInMillis milliseconds!".also {
@@ -319,6 +350,7 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
                 })
                 throw e
             } catch (e: CancellationException) {
+                Timber.e("v!")
                 throw e
             } catch (e: Exception) {
                 Timber.e(e)
