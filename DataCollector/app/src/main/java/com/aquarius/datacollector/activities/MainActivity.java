@@ -12,7 +12,7 @@ import android.widget.TextView;
 import com.aquarius.datacollector.R;
 import com.aquarius.datacollector.activities.fragments.DataFilesFragment;
 import com.aquarius.datacollector.activities.fragments.ProjectFragment;
-import com.aquarius.datacollector.activities.fragments.SerialDownloadFragment;
+import com.aquarius.datacollector.activities.fragments.SerialDownloadFragment2;
 
 import com.aquarius.datacollector.database.DataLogger;
 import com.aquarius.datacollector.database.Project;
@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
                     FragmentTransaction transaction = fm.beginTransaction();
                     transaction.replace(R.id.contentFrame, fragment);
                     transaction.commit();
+                    fm.executePendingTransactions();
                 }
                     return true;
                 case R.id.navigation_data: {
@@ -51,17 +52,19 @@ public class MainActivity extends AppCompatActivity {
                     FragmentTransaction transaction = fm.beginTransaction();
                     transaction.replace(R.id.contentFrame, fragment);
                     transaction.commit();
+                    fm.executePendingTransactions();
                 }
                     return true;
                 case R.id.navigation_settings: {
                     //Intent intent = new Intent(MainActivity.this, SerialConsoleActivity.class);
                     //startActivity(intent);
-                    SerialDownloadFragment fragment = new SerialDownloadFragment();
+                    SerialDownloadFragment2 fragment = new SerialDownloadFragment2();
 
                     FragmentManager fm = getSupportFragmentManager();
                     FragmentTransaction transaction = fm.beginTransaction();
                     transaction.replace(R.id.contentFrame, fragment);
                     transaction.commit();
+                    fm.executePendingTransactions();
                 }
                     return true;
             }
@@ -73,7 +76,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Fabric.with(this, new Crashlytics());
+
+        //Fabric.with(this, new Crashlytics());
+
         setContentView(R.layout.activity_main);
 
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
