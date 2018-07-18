@@ -13,15 +13,9 @@ import com.aquarius.datacollector.BuildConfig;
 import com.aquarius.datacollector.R;
 import com.aquarius.datacollector.activities.fragments.DataFilesFragment;
 import com.aquarius.datacollector.activities.fragments.ProjectFragment;
-import com.aquarius.datacollector.activities.fragments.SerialDownloadFragment2;
+import com.aquarius.datacollector.activities.fragments.SerialDownloadFragment;
 
-import com.aquarius.datacollector.database.DataLogger;
-import com.aquarius.datacollector.database.Project;
-import com.crashlytics.android.Crashlytics;
-import io.fabric.sdk.android.Fabric;
 import io.realm.Realm;
-import io.realm.RealmQuery;
-import io.realm.RealmResults;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
@@ -60,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.navigation_settings: {
                     //Intent intent = new Intent(MainActivity.this, SerialConsoleActivity.class);
                     //startActivity(intent);
-                    SerialDownloadFragment2 fragment = new SerialDownloadFragment2();
+                    SerialDownloadFragment fragment = new SerialDownloadFragment();
 
                     FragmentManager fm = getSupportFragmentManager();
                     FragmentTransaction transaction = fm.beginTransaction();
