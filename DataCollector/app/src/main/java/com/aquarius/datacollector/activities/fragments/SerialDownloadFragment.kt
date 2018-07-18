@@ -295,7 +295,7 @@ class SerialDownloadFragment : Fragment(), ControlListener {
     private suspend fun GattConnection.sendToSerial(value: String){
         val service = getService(uartServiceUUID)
                 ?: throw IllegalStateException("service not found")
-        val characteristic: BluetoothGattCharacteristic = service[serialRXCharacteristicUUID]
+        val characteristic: BluetoothGattCharacteristic = service[serialTXCharacteristicUUID]
                 ?: throw IllegalStateException("Characteristic not found")
         characteristic.value = value.toByteArray()
         deviceConnection?.writeCharacteristic(characteristic)
@@ -340,6 +340,7 @@ class SerialDownloadFragment : Fragment(), ControlListener {
 
         // Right here we will start working on the BLE connection
         var device = bluetoothManager.adapter.getRemoteDevice(defaultDeviceMacAddress)
+        deviceConnection = GattConnection(device)
 
         operationAttempt?.cancel()
         operationAttempt = launch(UI) {
@@ -369,7 +370,9 @@ class SerialDownloadFragment : Fragment(), ControlListener {
                         val data = characteristicValue?.getStringValue(0);
                         Timber.i("Notified Value: " + data);
                         // NOTE: if you are connected via both BLE and USB expect major strangeness
-                        control?.receivedData(data) // TODO: Make this thread safe
+                        if(data != null) {
+                            control?.receivedData(data) // TODO: Make this thread safe
+                        }
 
                     }
 /*                 deviceConnection.notifyChannel.consumeEach {
