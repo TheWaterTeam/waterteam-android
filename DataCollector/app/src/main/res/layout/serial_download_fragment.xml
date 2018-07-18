@@ -20,11 +20,9 @@
     <TextView
         android:id="@+id/textView1"
         android:layout_width="match_parent"
-        android:layout_height="250dp"
+        android:layout_height="216dp"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/buttonRequestDownload"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="15dp"
         android:background="#FFFFFF"
         android:fadeScrollbars="false"
         android:gravity="bottom"
@@ -69,5 +67,32 @@
         android:layout_below="@+id/lastDownloadDateTextView"
         android:layout_marginEnd="6dp"
         android:text="Deploy" />
+
+    <TextView
+        android:id="@+id/valueView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/buttonRequestDownload"
+        android:layout_alignStart="@+id/buttonRequestDownload"
+        android:layout_marginTop="20dp"
+        android:text="Val1" />
+
+    <TextView
+        android:id="@+id/valueView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/valueView1"
+        android:layout_alignStart="@+id/buttonRequestDownload"
+        android:layout_marginTop="20dp"
+        android:text="Val2" />
+
+    <TextView
+        android:id="@+id/valueView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/valueView2"
+        android:layout_alignStart="@+id/buttonRequestDownload"
+        android:layout_marginTop="20dp"
+        android:text="Val3" />
 
 </RelativeLayout>

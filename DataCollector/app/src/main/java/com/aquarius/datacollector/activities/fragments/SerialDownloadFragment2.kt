@@ -127,6 +127,10 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
     private val editText: EditText? = null
     private var dataLoggerIdTextView: TextView? = null
     private var lastDownloadDateTextView: TextView? = null
+    private var valueView1: TextView? = null
+    private var valueView2: TextView? = null
+    private var valueView3: TextView? = null
+
 
     private var mHandler: SerialDownloadFragment2.MyHandler? = null
     private val usbConnection = object : ServiceConnection {
@@ -183,6 +187,10 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
 
         dataLoggerIdTextView = view.findViewById(R.id.dataloggerIdTextView) as TextView
         lastDownloadDateTextView = view.findViewById(R.id.lastDownloadDateTextView) as TextView
+
+        valueView1 = view.findViewById(R.id.valueView1) as TextView
+        valueView2 = view.findViewById(R.id.valueView2) as TextView
+        valueView3 = view.findViewById(R.id.valueView3) as TextView
 
         /*
         Button sendButton = (Button) view.findViewById(R.id.buttonSend);
@@ -330,7 +338,11 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
 
                     while(true){
                         val characteristicValue = deviceConnection.notifyChannel.receive()
-                        Timber.i("Notified Value: " + characteristicValue.getStringValue(0));
+                        val data = characteristicValue.getStringValue(0);
+                        Timber.i("Notified Value: " + data);
+                        // NOTE: if you are connected via both BLE and USB expect major strangeness
+                        control?.receivedData(data) // TODO: Make this thread safe
+
                     }
 /*                 deviceConnection.notifyChannel.consumeEach {
                         Timber.i("Notified Value: " + it.getStringValue(0));
@@ -492,6 +504,8 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
             }
 
             // send ACK
+            // NOTE: abstract usbServer and ble to one interface here
+            // and only send to the one that is connected!
             usbService!!.write(Control.ACK.toByteArray())
             display!!.append("SEND " + Control.ACK + "\n\n")
 
@@ -521,6 +535,14 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
                 val dateString = SimpleDateFormat("MM dd, yyyy hh:mma").format(df)
                 display!!.append("CURRENT DATALOGGER TIME: $dateString")
             }
+        } else if (command.contains("WT_VALUES")) {
+            val valuesCSV = command.substring(command.indexOf(":") + 1)
+            val valuesList = valuesCSV.split(",")
+            valueView1?.text = valuesList[0]
+            valueView2?.text = valuesList[2]
+            valueView3?.text = valuesList[3]
+
+
         } else {
             display!!.append(command + "\n")
         }
