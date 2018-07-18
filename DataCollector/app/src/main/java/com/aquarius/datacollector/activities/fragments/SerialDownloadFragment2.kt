@@ -59,6 +59,8 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
     private var connectedProbeUUID: String? = null
     private var downloadRequestTime: Long = 0
 
+    private var bleConnected = false;
+    private var usbConnected = false;
 
     /*
  * Notifications from UsbService will be received here.
@@ -70,7 +72,7 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
     private val mUsbReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val handler = Handler()
-
+            display!!.append("Got something from USB")
             when (intent.action) {
                 UsbService.ACTION_USB_READY // USB PERMISSION GRANTED
                 -> {
@@ -401,7 +403,9 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
 
 
     private fun startService(service: Class<*>, serviceConnection: ServiceConnection, extras: Bundle?) {
+        display!!.append("Starting USB Service")
         if (!UsbService.SERVICE_CONNECTED) {
+            display!!.append("Starting USB Service")
             val startService = Intent(activity, service)
             if (extras != null && !extras.isEmpty) {
                 val keys = extras.keySet()
@@ -464,7 +468,7 @@ class SerialDownloadFragment2 : Fragment(), ControlListener {
             when (msg.what) {
                 UsbService.MESSAGE_FROM_SERIAL_PORT -> {
                     val data = msg.obj as String
-                    //mFragment.get().display.append("Data: " + data);
+                   // mFragment.get()!!.display!!.append("Data: " + data);
                     try {
                         Log.d(TAG, "Received Data $data")
                         if (mFragment.get() != null) {

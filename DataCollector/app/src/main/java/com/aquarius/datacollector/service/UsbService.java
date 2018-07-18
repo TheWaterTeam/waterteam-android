@@ -38,7 +38,7 @@ public class UsbService extends Service {
     public static final int CTS_CHANGE = 1;
     public static final int DSR_CHANGE = 2;
     private static final String ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION";
-    private static final int BAUD_RATE = 115200; // BaudRate. Change this value if you need
+    private static final int BAUD_RATE = 9600; // BaudRate. Change this value if you need
     private static final String TAG = "UsbService";
     public static boolean SERVICE_CONNECTED = false;
 
@@ -60,14 +60,11 @@ public class UsbService extends Service {
     private UsbSerialInterface.UsbReadCallback mCallback = new UsbSerialInterface.UsbReadCallback() {
         @Override
         public void onReceivedData(byte[] arg0) {
-            try {
-                String data = new String(arg0, "UTF-8");
-                if (mHandler != null)
-                    mHandler.obtainMessage(MESSAGE_FROM_SERIAL_PORT, data).sendToTarget();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        }
+            String data = new String(arg0);
+            if (mHandler != null)
+                mHandler.obtainMessage(MESSAGE_FROM_SERIAL_PORT, data).sendToTarget();
+
+          }
     };
 
     /*
@@ -275,8 +272,14 @@ public class UsbService extends Service {
                     //
                     // Some Arduinos would need some sleep because firmware wait some time to know whether a new sketch is going 
                     // to be uploaded or not
-                    //Thread.sleep(2000); // sleep some. YMMV with different chips.
-                    
+                    /*
+                    try {
+                        Thread.sleep(2000); // sleep some. YMMV with different chips.
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    */
+
                     // Everything went as expected. Send an intent to MainActivity
                     Intent intent = new Intent(ACTION_USB_READY);
                     context.sendBroadcast(intent);
